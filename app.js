@@ -9,16 +9,27 @@ const port = 5005;
 
 //app.use(express.urlencoded({extended:true}))
 //app.use(express.json);
-app.use(express.json())
+app.use(express.json());
 
-app.get("/", (req,res)=>res.sendFile(__dirname + path.join("/site/index.html")))
+app.use(express.static('site'));
+
+//app.get("/", (req,res)=>res.sendFile(__dirname + path.join("/site/index.html")))
+
+app.get("/task/:id", async (req,res)=>{
+    const task = await db.any(`SELECT * FROM tasks WHERE id='${res.body.id}'`);
+    const subtask = await db.any(`SELECT * FROM tasks WHERE task_id='${res.body.id}'`);
+    
+    res.json({
+        task:task,
+        subtask:subtask
+    });
+
+})
 
 app.get("/tasks", async (req, res)=>{
     const data = await db.any('SELECT * FROM tasks');
     res.json(data)
 })
-
-app.get("/new-task", (req,res)=>res.sendFile(__dirname + path.join("/site/newTask.html")))
 
 app.post("/new-task", async (req, res)=>{
     if(!req.body.title) return res.send('You must supply a title.');
@@ -35,7 +46,6 @@ app.patch('/edit-task/:id/complete_task', async (req,res)=>{
     res.send(result);
 })
 
-app.patch('/edit-task/:id/title', )
 
 app.listen(port, ()=>{
     console.log(`http://localhost:${port}`)
